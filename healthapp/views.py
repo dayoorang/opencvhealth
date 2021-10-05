@@ -1,5 +1,4 @@
-from typing import List
-
+from typing import List, Tuple, Union, Optional, Mapping
 from django.shortcuts import render
 
 from django.views.decorators import gzip
@@ -7,11 +6,59 @@ from django.http import StreamingHttpResponse
 import cv2
 import mediapipe as mp
 import numpy as np
+
+import dataclasses
+import math
+from mediapipe.framework.formats import landmark_pb2
 import threading
 # Create your views here.
 
 def home(request):
     return render(request, 'healthapp/home.html')
+
+### camera code ####
+
+_PRESENCE_THRESHOLD = 0.5
+_VISIBILITY_THRESHOLD = 0.5
+_RGB_CHANNELS = 3
+
+WHITE_COLOR = (224, 224, 224)
+BLACK_COLOR = (0, 0, 0)
+RED_COLOR = (0, 0, 255)
+GREEN_COLOR = (0, 128, 0)
+BLUE_COLOR = (255, 0, 0)
+
+CUSTOMIZED_POSE_CONNETIONS: List[Tuple[int, int]] = [
+    (11, 12), (11, 13), (11, 23), (12, 14), (12, 24),
+    (13, 15), (14, 16), (15, 17), (15, 19), (15, 21),
+    (16, 18), (16, 20), (16, 22), (17, 19), (18, 20),
+    (23, 24), (23, 25), (24, 26), (25, 27), (26, 28),
+    (27, 29), (27, 31), (28, 30), (28, 32), (29, 31), (30, 32)
+]
+
+@dataclasses.dataclass
+class DrawingSpec:
+    # Color for drawing the annotation. Default to the white color.
+    color: Tuple[int, int, int] = WHITE_COLOR
+    # Thickness for drawing the annotation. Default to 2 pixels.
+    thickness: int = 2
+    # Circle radius. Default to 2 pixels.
+    circle_radius: int = 2
+
+
+def _normalized_to_pixel_coordinates(normalized_x: float, normalized_y: float, image_width: int, image_height: int) -> \
+Union[None, Tuple[int, int]]:
+    # Checks if the float value is between 0 and 1.
+    def is_valid_normalized_value(value: float) -> bool:
+        return (value > 0 or math.isclose(0, value)) and (value < 1 or math.isclose(1, value))
+
+    if not (is_valid_normalized_value(normalized_x) and is_valid_normalized_value(normalized_y)):
+        # Draw coordinates even if it's outside of the image bounds.
+        return None
+    x_px = min(math.floor(normalized_x * image_width), image_width - 1)
+    y_px = min(math.floor(normalized_y * image_height), image_height - 1)
+    return x_px, y_px
+
 
 class VideoCamera(object):
     def __init__(self):
@@ -42,6 +89,56 @@ class VideoCamera(object):
 
     def __del__(self):
         self.cap.release()
+
+    # custom draw mark
+
+    def customized_draw_landmarks(self, image: np.ndarray,
+                                  landmark_list: landmark_pb2.NormalizedLandmarkList,
+                                  connections: Optional[List[Tuple[int, int]]] = None,
+                                  landmark_drawing_spec: Union[DrawingSpec, Mapping[int, DrawingSpec]] = DrawingSpec(
+                                      color=RED_COLOR),
+                                  connection_drawing_spec: Union[
+                                      DrawingSpec, Mapping[Tuple[int, int], DrawingSpec]] = DrawingSpec()):
+        if not landmark_list:
+            return
+        if image.shape[2] != _RGB_CHANNELS:
+            raise ValueError('Input image must contain three channel rgb data.')
+        image_rows, image_cols, _ = image.shape
+        idx_to_coordinates = {}
+        # revised_list = landmark_list.landmark[11:] # 0~10번까지 얼굴 좌표
+        for idx, landmark in zip(range(11, len(landmark_list.landmark)), landmark_list.landmark[11:]):
+            if ((landmark.HasField('visibility') and landmark.visibility < _VISIBILITY_THRESHOLD) or
+                    (landmark.HasField('presence') and landmark.presence < _PRESENCE_THRESHOLD)):
+                continue
+            landmark_px = _normalized_to_pixel_coordinates(landmark.x, landmark.y, image_cols, image_rows)
+            if landmark_px:
+                idx_to_coordinates[idx] = landmark_px
+        #             print('idx_to_coordinates[idx] = landmark_px', idx, landmark_px[0], landmark_px[1])
+        if connections:
+            num_landmarks = len(landmark_list.landmark)
+            # Draws the connections if the start and end landmarks are both visible.
+            for connection in connections:
+                start_idx = connection[0]
+                end_idx = connection[1]
+                if not (0 <= start_idx < num_landmarks and 0 <= end_idx < num_landmarks):
+                    raise ValueError(f'Landmark index is out of range. Invalid connection '
+                                     f'from landmark #{start_idx} to landmark #{end_idx}.')
+                if start_idx in idx_to_coordinates and end_idx in idx_to_coordinates:
+                    drawing_spec = connection_drawing_spec[connection] if isinstance(
+                        connection_drawing_spec, Mapping) else connection_drawing_spec
+                    cv2.line(image, idx_to_coordinates[start_idx], idx_to_coordinates[end_idx], drawing_spec.color,
+                             drawing_spec.thickness)
+        # Draws landmark points after finishing the connection lines, which is
+        # aesthetically better.
+        if landmark_drawing_spec:
+            for idx, landmark_px in idx_to_coordinates.items():
+                drawing_spec = landmark_drawing_spec[idx] if isinstance(
+                    landmark_drawing_spec, Mapping) else landmark_drawing_spec
+                # White circle border
+                circle_border_radius = max(drawing_spec.circle_radius + 1, int(drawing_spec.circle_radius * 1.2))
+                cv2.circle(image, landmark_px, circle_border_radius, WHITE_COLOR, drawing_spec.thickness)
+                # Fill color into the circle
+                cv2.circle(image, landmark_px, drawing_spec.circle_radius, drawing_spec.color, drawing_spec.thickness)
 
     # coor == coordinates: 좌표
     def calculate_angle(self, coor_fst: List[float], coor_scd: List[float], coor_trd: List[float]) -> float:
@@ -205,11 +302,20 @@ class VideoCamera(object):
             cv2.putText(img=image, text=str(self.current_set), org=(290, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=2, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
 
-            # Render detections
-            self.mp_drawing.draw_landmarks(image, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS,
-                                      self.mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=2),
-                                      self.mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2)
-                                      )
+            # # Render detections
+            # self.mp_drawing.draw_landmarks(image, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS,
+            #                           self.mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=2),
+            #                           self.mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2)
+            #                           )
+
+            # self.customized_draw_landmarks(image,
+            #                                results.pose_landmarks,  # same type : landmarks[32]
+            #                                CUSTOMIZED_POSE_CONNETIONS)  # mp_pose.POSE_CONNECTIONS
+
+            #
+            self.customized_draw_landmarks(image=image,
+                                      landmark_list=results.pose_landmarks,  # same type : landmarks[32]
+                                      connections=CUSTOMIZED_POSE_CONNETIONS)  # mp_pose.POSE_CONNECTIONS
 
             # cv2.imshow('Mediapipe Feed', image)
              # image = self.frame
