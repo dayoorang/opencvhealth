@@ -4,10 +4,17 @@
     <div class="container d-flex justify-content-center align-items-center">
         <div class="row ">
             <div class="col">
+                <div>
+                    갯수: {{ target_health.repeats }}
+                </div>
+                <div>
+                    세트수: {{ target_health.set }}
+
+                </div>
                 <h1>Video..</h1>
 
                 <div class="border border-dark" style="height:300px; width:300px;">
-{#                    <img class="camera" src="{% url 'healthmapp:detectme' %}" >#}
+                    <img class="camera" src="{% url 'healthmapp:detectme' target_health.pk %}" >
                 </div>
 
             </div>

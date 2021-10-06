@@ -1,5 +1,6 @@
 from typing import List, Tuple, Union, Optional, Mapping
 from django.shortcuts import render
+from django.urls import reverse_lazy, reverse
 
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
@@ -9,12 +10,15 @@ import numpy as np
 
 import dataclasses
 import math
+
+from django.views.generic import CreateView, DetailView
 from mediapipe.framework.formats import landmark_pb2
 import threading
 # Create your views here.
+from healthapp.forms import HealthForm
+from healthapp.models import Health
 
-def home(request):
-    return render(request, 'healthapp/home.html')
+
 
 ### camera code ####
 
@@ -47,7 +51,7 @@ class DrawingSpec:
 
 
 def _normalized_to_pixel_coordinates(normalized_x: float, normalized_y: float, image_width: int, image_height: int) -> \
-Union[None, Tuple[int, int]]:
+    Union[None, Tuple[int, int]]:
     # Checks if the float value is between 0 and 1.
     def is_valid_normalized_value(value: float) -> bool:
         return (value > 0 or math.isclose(0, value)) and (value < 1 or math.isclose(1, value))
@@ -61,7 +65,7 @@ Union[None, Tuple[int, int]]:
 
 
 class VideoCamera(object):
-    def __init__(self):
+    def __init__(self, REPEATS, SET):
         self.cap = cv2.VideoCapture(0)
 
         self.mp_drawing = mp.solutions.drawing_utils
@@ -75,8 +79,12 @@ class VideoCamera(object):
 
         # 사용자가 미리 정해 놓은 루틴 / 한 운동의 반복횟수 / 한 운동의 세트횟수
         self.ROUTE: List[str] = ['아령들기', '스쿼트','팔굽혀펴기']
-        self.REPEATS: int = 5
-        self.SET: int = 2
+
+        ### 수정중 ####
+        self.REPEATS: int = REPEATS
+        self.SET: int = SET
+        ##############
+
         self.current_route: int = 0  # ROUTE[0] .. ROUTE[2] 순으로 사용
         self.current_set: int = 0
 
@@ -334,11 +342,38 @@ def gen(camera):
               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 
+# @gzip.gzip_page
+# def detectme(request):
+#     try:
+#         cam = VideoCamera()
+#         return StreamingHttpResponse(gen(cam), content_type='multipart/x-mixed-replace;boundary=frame')
+#     except:
+#         print("에러입니다")
+#         pass
+
+# detectme 수정중
 @gzip.gzip_page
-def detectme(request):
+def detectme(request,pk):
     try:
-        cam = VideoCamera()
+        health = Health.objects.get(id=pk)
+        cam = VideoCamera(REPEATS=health.repeats,SET=health.set)
         return StreamingHttpResponse(gen(cam), content_type='multipart/x-mixed-replace;boundary=frame')
     except:
         print("에러입니다")
         pass
+
+# custom page View
+
+class HealthCreationView(CreateView):
+    model = Health
+    form_class = HealthForm
+    success_url = reverse_lazy('healthmapp:training')
+    template_name = 'healthapp/custom.html'
+
+    def get_success_url(self):
+        return reverse('healthmapp:training', args=[self.object.pk])
+
+class TrainingView(DetailView):
+    model = Health
+    context_object_name = 'target_health'
+    template_name = 'healthapp/training.html'

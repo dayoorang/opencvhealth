@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    {% for field in form %}
+                        <label for="{{ field.label }}">{{ field.label }}</label>
+                        <div>{{ field }}</div>
+                    {% endfor %}
+                    <input  type="submit" class="btn btn-outline-primary btn-form mt-2">
+                </div>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}
