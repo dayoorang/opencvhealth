@@ -1,25 +1,32 @@
 {%  extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-    <div class="container d-flex justify-content-center align-items-center">
-        <div class="row ">
-            <div class="col">
-                <div>
-                    갯수: {{ target_health.repeats }}
-                </div>
-                <div>
-                    세트수: {{ target_health.set }}
+    <link rel="stylesheet" type="text/css" href="{% static '/css/base.css' %}">
 
-                </div>
-                <h1>Video..</h1>
-
-                <div class="border border-dark" style="height:300px; width:300px;">
-                    <img class="camera" src="{% url 'healthmapp:detectme' target_health.pk %}" >
-                </div>
-
-            </div>
+    <div class="container container_video">
+{#        <div style="background: #27a327">'안녕'</div>#}
+{#        <div style="background: gold">'안녕'</div>#}
+{#        <div style="background: aquamarine">'안녕'</div>#}
+        <div class="item-1">
+            <span>Reps: {{ target_health.repeats }}</span>
+            <span>Sets: {{ target_health.set }}</span>
         </div>
-    <div>
+        <div class="item-2">
+{#            <img src="" alt="Video Loading..">#}
+{#        <img alt="Video Loading..">#}
+{#            <img  alt="Video Loading.." class="camera" src="{% url 'healthmapp:detectme' target_health.pk %}" >#}
+        </div>
+
+        <div class="btn">
+            <div  class="btn btn-success">
+                <a href="{% url 'healthmapp:health' %}">재설정</a>
+            </div>
+            <span class="btn btn-outline-success">
+                <a href="#">완료</a>
+            </span>
+        </div>
+    </div>
 
 
 

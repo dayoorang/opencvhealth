@@ -1,0 +1,19 @@
+{% load static %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static '/css/base.css' %}">
+
+    <div class="container">
+        <form action="" method="post">
+            {% csrf_token %}
+            <h1>{{ topic }} Form</h1>
+            <div class="form-group">
+                {% for field in form %}
+                    <label for="{{ field.label }}">{{ field.label }}</label>
+                    <div>{{ field }}</div>
+                {% endfor %}
+                <input  type="submit" class="btn" value="{{ submit_label }}">
+            </div>
+        </form>
+    </div>
+{% endblock %}
