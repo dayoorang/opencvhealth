@@ -19,9 +19,11 @@
         </div>
 
         <div class="btn">
-            <div  class="btn btn-success">
-                <a href="{% url 'healthmapp:delete' target_health.pk %} ">재설정</a>
-            </div>
+
+            <form style="display: inline-block" action="{% url 'healthmapp:delete' target_health.pk %}" method="post">
+                {% csrf_token %}
+                <input value="재설정" class="btn btn-success" type="submit"/>
+            </form>
             <span class="btn btn-outline-success">
                 <a href="#">완료</a>
             </span>

@@ -379,9 +379,10 @@ class HealthCreationView(CreateView):
 class HealthDeleteView(DeleteView):
     model = Health
     context_object_name = 'target_health'
+    success_url = reverse_lazy('healthmapp:health')
 
-    def get_success_url(self):
-        return reverse('healthmapp:health')
+    # def get_success_url(self):
+    #     return reverse('healthmapp:health')
 
 
 class TrainingView(DetailView):
