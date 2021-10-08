@@ -1,0 +1,30 @@
+{%  extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static '/css/base.css' %}">
+    <style>
+        h1 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height:100vh;
+            font-weight: bolder;
+        }
+    </style>
+    <div class="container container_video">
+{#        <div style="background: #27a327">'안녕'</div>#}
+{#        <div style="background: gold">'안녕'</div>#}
+{#        <div style="background: aquamarine">'안녕'</div>#}
+{#        <div class="item-1">#}
+{#            <span>Reps: {{ target_health.repeats }}</span>#}
+{#            <span>Sets: {{ target_health.set }}</span>#}
+{#        </div>#}
+        <h1>
+            수고하셨습니다
+        </h1>
+    </div>
+
+
+
+{% endblock %}

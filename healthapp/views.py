@@ -389,3 +389,9 @@ class TrainingView(DetailView):
     model = Health
     context_object_name = 'target_health'
     template_name = 'healthapp/training.html'
+
+
+class HealthCompleteView(DetailView):
+    model = Health
+    context_object_name = 'target_health'
+    template_name = 'healthapp/complete.html'
