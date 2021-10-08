@@ -15,12 +15,12 @@
         <div class="item-2">
 {#            <img src="" alt="Video Loading..">#}
 {#        <img alt="Video Loading..">#}
-{#            <img  alt="Video Loading.." class="camera" src="{% url 'healthmapp:detectme' target_health.pk %}" >#}
+            <img  alt="Video Loading.." class="camera" src="{% url 'healthmapp:detectme' target_health.pk %}" >
         </div>
 
         <div class="btn">
             <div  class="btn btn-success">
-                <a href="{% url 'healthmapp:health' %}">재설정</a>
+                <a href="{% url 'healthmapp:delete' target_health.pk %} ">재설정</a>
             </div>
             <span class="btn btn-outline-success">
                 <a href="#">완료</a>

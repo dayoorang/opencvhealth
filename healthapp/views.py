@@ -1,4 +1,6 @@
 from typing import List, Tuple, Union, Optional, Mapping
+
+from django.contrib import messages
 from django.shortcuts import render
 from django.urls import reverse_lazy, reverse
 
@@ -11,7 +13,7 @@ import numpy as np
 import dataclasses
 import math
 
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, DeleteView
 from mediapipe.framework.formats import landmark_pb2
 import threading
 # Create your views here.
@@ -331,9 +333,9 @@ class VideoCamera(object):
             return jpeg.tobytes()
 
 
-    # def update(self):
-    #     while True:
-    #         (self.grabbed, self.frame) = self.video.read()
+    def update(self):
+        while True:
+            (self.grabbed, self.frame) = self.video.read()
 
 def gen(camera):
     while True:
@@ -372,6 +374,15 @@ class HealthCreationView(CreateView):
 
     def get_success_url(self):
         return reverse('healthmapp:training', args=[self.object.pk])
+
+
+class HealthDeleteView(DeleteView):
+    model = Health
+    context_object_name = 'target_health'
+
+    def get_success_url(self):
+        return reverse('healthmapp:health')
+
 
 class TrainingView(DetailView):
     model = Health
