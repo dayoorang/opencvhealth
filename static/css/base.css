@@ -18,7 +18,7 @@ body {
 }
 
 .container .form {
-    width: 100%;
+    width: 140%;
     height: 100%;
     padding: 20px;
     background: white;
@@ -33,13 +33,16 @@ body {
 }
 
 .container .form .form-control {
-    width: 100%;
+    width: 19rem;
     height: 40px;
     background: white;
     border-radius: 4px;
     border: 1px solid silver;
     margin: 10px 0 18px 0;
     padding: 0 10px;
+}
+#id_set{
+    width: 100%;
 }
 
 .container .form .btn {

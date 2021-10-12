@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 
-from healthapp.views import detectme, HealthCreationView, TrainingView, HealthDeleteView, HealthCompleteView
+from healthapp.views import detectme, HealthCreationView, TrainingView, HealthDeleteView, HealthCompleteView, \
+    HealthCustomCreationView
 
 app_name = 'healthmapp'
 
@@ -11,6 +12,7 @@ urlpatterns = [
     path('delete/<int:pk>', HealthDeleteView.as_view(), name='delete'),
     path('complete/<int:pk>', HealthCompleteView.as_view(), name='complete'),
 
-    path('', HealthCreationView.as_view(), name='health'),
+    # path('', HealthCreationView.as_view(), name='health'),
+    path('', HealthCustomCreationView.as_view(), name='health'),
 
 ]

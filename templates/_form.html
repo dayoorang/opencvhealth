@@ -1,19 +1,98 @@
 {% load static %}
 
+{#{% block content %}#}
+{#    <link rel="stylesheet" type="text/css" href="{% static '/css/base.css' %}">#}
+{##}
+{#    <div class="container">#}
+{#        <form class="form" action="" method="post">#}
+{#            {% csrf_token %}#}
+{#            <h1>{{ topic }} Form</h1>#}
+{#            <div class="form-group">#}
+{#                {{ form.excersie_1 }}#}
+{#                {% for field in form %}#}
+{#                    <label for="{{ field.label }}">{{ field.label }}</label>#}
+{#                    <div>{{ field }}</div>#}
+{#                {% endfor %}#}
+{#                <input  type="submit" class="btn" value="{{ submit_label }}">#}
+{#            </div>#}
+{#        </form>#}
+{#    </div>#}
+{#{% endblock %}#}
+
+{#['set','excersie_1','excersie_2','excersie_3','repeats_1','repeats_2','repeats_3']#}
 {% block content %}
     <link rel="stylesheet" type="text/css" href="{% static '/css/base.css' %}">
-
+    <style>
+        .exercise1 {
+            display: flex;
+            justify-content: center;
+        }
+        .exercise2 {
+            display: flex;
+            justify-content: center;
+        }
+        .exercise3 {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
     <div class="container">
-        <form class="form" action="" method="post">
-            {% csrf_token %}
-            <h1>{{ topic }} Form</h1>
-            <div class="form-group">
-                {% for field in form %}
-                    <label for="{{ field.label }}">{{ field.label }}</label>
-                    <div>{{ field }}</div>
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
                 {% endfor %}
-                <input  type="submit" class="btn" value="{{ submit_label }}">
+            {% endfor %}
+{#            {% for error in form.non_field_errors %}#}
+{#                <div class="alert alert-danger">#}
+{#                    <strong>{{ error|escape }}</strong>#}
+{#                </div>#}
+{#            {% endfor %}#}
+        {% endif %}
+        <div class="row">
+            <div class="col">
+                <form class="form" action="" method="post">
+                    {% csrf_token %}
+                    <h1>{{ topic }} Form</h1>
+                    <div class="form-group">
+                        <div class="set">
+                            <label for="{{ form.set.label }}">{{ form.set.label }}</label>
+                            <div>{{ form.set }}</div>
+                        </div>
+
+                        <div>
+                            <label for="{{ form.exercise_1.label }}">{{ form.exercise_1.label }}</label>
+                            <div class="exercise1">
+                                <span style="margin-right: 0.5rem">{{ form.exercise_1 }}</span>
+                                <span>{{ form.repeats_1 }}</span>
+                            </div>
+
+                        </div>
+                        <div>
+                            <label for="{{ form.exercise_2.label }}">{{ form.exercise_2.label }}</label>
+                            <div class="exercise2">
+                                <span style="margin-right: 0.5rem">{{ form.exercise_2 }}</span>
+                                <span>{{ form.repeats_2 }}</span>
+                            </div>
+
+                        </div>
+                        <div>
+                            <label for="{{ form.exercise_3.label }}">{{ form.exercise_3.label }}</label>
+                            <div class="exercise3">
+                                <span style="margin-right: 0.5rem">{{ form.exercise_3 }}</span>
+                                <span>{{ form.repeats_3 }}</span>
+                            </div>
+
+                        </div>
+
+
+                        <input  type="submit" class="btn" value="{{ submit_label }}">
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
+
 {% endblock %}

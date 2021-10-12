@@ -17,8 +17,8 @@ from django.views.generic import CreateView, DetailView, DeleteView
 from mediapipe.framework.formats import landmark_pb2
 import threading
 # Create your views here.
-from healthapp.forms import HealthForm
-from healthapp.models import Health
+from healthapp.forms import HealthForm, HealthCustomForm
+from healthapp.models import Health, HealthCustom
 import threading as trd
 import pyttsx3
 
@@ -68,7 +68,7 @@ def _normalized_to_pixel_coordinates(normalized_x: float, normalized_y: float, i
 
 
 class VideoCamera(object):
-    def __init__(self, REPEATS, SET):
+    def __init__(self, EXER, REPEATS, SET):
         self.cap = cv2.VideoCapture(0)
 
         self.mp_drawing = mp.solutions.drawing_utils
@@ -81,11 +81,12 @@ class VideoCamera(object):
         self.stage: str = ''  # down or up
 
         # 사용자가 미리 정해 놓은 루틴 / 한 운동의 반복횟수 / 한 운동의 세트횟수
-        self.ROUTE: List[str] = ['아령들기', '스쿼트','팔굽혀펴기']
+        # self.ROUTE: List[str] = ['아령들기', '스쿼트','팔굽혀펴기']
 
         ### 수정중 ####
-        self.REPEATS: int = REPEATS
-        self.SET: int = SET
+        self.ROUTE = EXER
+        self.REPEATS = REPEATS
+        self.SET = SET
         ##############
 
         self.current_route: int = 0  # ROUTE[0] .. ROUTE[2] 순으로 사용
@@ -384,8 +385,14 @@ def gen(camera):
 @gzip.gzip_page
 def detectme(request,pk):
     try:
-        health = Health.objects.get(id=pk)
-        cam = VideoCamera(REPEATS=health.repeats,SET=health.set)
+        # health = Health.objects.get(id=pk)
+        health = HealthCustom.objects.get(id=pk)
+        exer_list = [health.exercise_1,health.exercise_2 ,health.exercise_3 ]
+        reps_list = [health.repeats_1,health.repeats_2, health.repeats_3]
+        print('exer_list',exer_list)
+        print('reps_list',reps_list)
+
+        cam = VideoCamera(EXER=exer_list , REPEATS=reps_list ,SET=health.set)
         return StreamingHttpResponse(gen(cam), content_type='multipart/x-mixed-replace;boundary=frame')
     except:
         print("에러입니다")
@@ -413,7 +420,7 @@ class HealthDeleteView(DeleteView):
 
 
 class TrainingView(DetailView):
-    model = Health
+    model = HealthCustom
     context_object_name = 'target_health'
     template_name = 'healthapp/training.html'
 
@@ -422,3 +429,13 @@ class HealthCompleteView(DetailView):
     model = Health
     context_object_name = 'target_health'
     template_name = 'healthapp/complete.html'
+
+
+class HealthCustomCreationView(CreateView):
+    model = Health
+    form_class = HealthCustomForm
+    success_url = reverse_lazy('healthmapp:training')
+    template_name = 'healthapp/healthcustom.html'
+
+    def get_success_url(self):
+        return reverse('healthmapp:training', args=[self.object.pk])

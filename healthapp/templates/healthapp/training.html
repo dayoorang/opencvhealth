@@ -4,18 +4,24 @@
 {% block content %}
     <link rel="stylesheet" type="text/css" href="{% static '/css/base.css' %}">
 
-    <div class="container container_video">
+    <div style="width:100rem; height:60rem;" class="container container_video">
 {#        <div style="background: #27a327">'안녕'</div>#}
 {#        <div style="background: gold">'안녕'</div>#}
 {#        <div style="background: aquamarine">'안녕'</div>#}
         <div class="item-1">
-            <span>Reps: {{ target_health.repeats }}</span>
-            <span>Sets: {{ target_health.set }}</span>
+            <span>{{ target_health.exercise_1 }} {{ target_health.repeats_1 }}</span>
+            {% if target_health.exercise_2 != '없음'%}
+                <span> 👉 {{ target_health.exercise_2 }} {{ target_health.repeats_2 }}</span>
+            {% endif %}
+            {% if target_health.exercise_3 != '없음'%}
+                <span> 👉 {{ target_health.exercise_3 }} {{ target_health.repeats_3 }}</span>
+            {% endif %}
+
         </div>
         <div class="item-2">
 {#            <img src="" alt="Video Loading..">#}
 {#        <img alt="Video Loading..">#}
-            <img  alt="Video Loading.." class="camera" src="{% url 'healthmapp:detectme' target_health.pk %}" >
+            <img style="width:60rem; height:50rem;" alt="Video Loading.." class="camera" src="{% url 'healthmapp:detectme' target_health.pk %}" >
         </div>
 
         <div class="btn">
