@@ -70,7 +70,11 @@ def _normalized_to_pixel_coordinates(normalized_x: float, normalized_y: float, i
 class VideoCamera(object):
     def __init__(self, EXER, REPEATS, SET):
         self.video = cv2.VideoCapture(0)
+        (self.grabbed, self.frame) = self.video.read()
+        # 추가 #
+        # self.video.set(cv2.CAP_PROP_BUFFERSIZE, 2)
 
+        ####
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_pose = mp.solutions.pose
 
@@ -259,8 +263,10 @@ class VideoCamera(object):
 
 
     def get_frame(self):
+        # frame = self.frame
         with self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
-            checkframe, frame = self.video.read()
+            _, frame = self.video.read()
+            # frame = self.frame
             # frame = cv2.flip(src=frame, flipCode=1) # 좌우(1) 또는 상하(0) 반전
 
             # Recolor 'frame' to RGB
@@ -275,7 +281,7 @@ class VideoCamera(object):
             # Extract landmarks
             try:
                 landmarks = results.pose_landmarks.landmark
-                print('self.ROUTE[self.current_route]', self.ROUTE[self.current_route])
+                # print('self.ROUTE[self.current_route]', self.ROUTE[self.current_route])
 
                 # 루틴별로 연산 필요 -------------------------------------------------------
                 # Get coordinates & Calculate a angle & Counter Logic
@@ -318,7 +324,17 @@ class VideoCamera(object):
                             if self.ROUTE[-1] == 'Push Up':
                                 self.current_set += 1
                                 if self.current_set == self.SET:
-                                    pass
+                                    print('통과')
+                                    cv2.rectangle(img=image, pt1=(100, int(self.HEIGHT / 2 - 50)),
+                                                  pt2=(550, int(self.HEIGHT / 2 + 20)),
+                                                  color=self.BLACK_COLOR,
+                                                  thickness=-1)
+
+                                    text = 'Success!'
+                                    cv2.putText(img=image, text=text, org=(230, int(self.HEIGHT / 2)),
+                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                                fontScale=0.8, color=self.WHITE_COLOR, thickness=2,
+                                                lineType=cv2.LINE_AA)
                             else:
                                 self.current_route += 1
                                 self.stages[0] = ''
@@ -376,7 +392,16 @@ class VideoCamera(object):
                                 if self.ROUTE[-1] == 'Curl':
                                     self.current_set += 1
                                     if self.current_set == self.SET:
-                                        pass
+                                        cv2.rectangle(img=image, pt1=(100, int(self.HEIGHT / 2 - 50)),
+                                                      pt2=(550, int(self.HEIGHT / 2 + 20)),
+                                                      color=self.BLACK_COLOR,
+                                                      thickness=-1)
+
+                                        text = 'Success!'
+                                        cv2.putText(img=image, text=text, org=(230, int(self.HEIGHT / 2)),
+                                                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                                    fontScale=0.8, color=self.WHITE_COLOR, thickness=2,
+                                                    lineType=cv2.LINE_AA)
                                 else:
                                     self.current_route += 1
                                     self.stages[0], self.stages[1] = '', ''
@@ -389,10 +414,10 @@ class VideoCamera(object):
                 elif self.ROUTE[self.current_route] == 'Squat':
                     if self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].visibility,
                                       second=landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].visibility,
-                                      third=landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].visibility) or \
+                                      third=landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].visibility) and \
                        self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].visibility,
                                       second=landmarks[self.mp_pose.PoseLandmark.RIGHT_KNEE.value].visibility,
-                                      third=landmarks[self.mp_pose.PoseLandmark.RIGHT_ANKLE.value].visibility):
+                                      third=landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].visibility):
                         pass
                     else:
                         # 골반(hip), 무릎(knee), 발목(ankle)
@@ -423,7 +448,17 @@ class VideoCamera(object):
                             if self.ROUTE[-1] == 'Squat':
                                 self.current_set += 1
                                 if self.current_set == self.SET:
-                                    pass
+                                    print('통과1')
+                                    cv2.rectangle(img=image, pt1=(100, int(self.HEIGHT / 2 - 50)),
+                                                  pt2=(550, int(self.HEIGHT / 2 + 20)),
+                                                  color=self.BLACK_COLOR,
+                                                  thickness=-1)
+
+                                    text = 'Success!'
+                                    cv2.putText(img=image, text=text, org=(230, int(self.HEIGHT / 2)),
+                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                                fontScale=0.8, color=self.WHITE_COLOR, thickness=2,
+                                                lineType=cv2.LINE_AA)
                             else:
                                 self.current_route += 1
                                 self.stages[0] = ''
@@ -457,6 +492,8 @@ class VideoCamera(object):
             return jpeg.tobytes()
 
 
+
+
     def update(self):
         while True:
             (self.grabbed, self.frame) = self.video.read()
@@ -483,10 +520,10 @@ def detectme(request,pk):
     try:
         # health = Health.objects.get(id=pk)
         health = HealthCustom.objects.get(id=pk)
-        exer_list = [health.exercise_1,health.exercise_2 ,health.exercise_3 ]
+        exer_list = [health.exercise_1,health.exercise_2 ,health.exercise_3,'End']
         reps_list = [health.repeats_1,health.repeats_2, health.repeats_3]
-        print('exer_list',exer_list)
-        print('reps_list',reps_list)
+        # print('exer_list',exer_list)
+        # print('reps_list',reps_list)
 
         cam = VideoCamera(EXER=exer_list , REPEATS=reps_list ,SET=health.set)
         return StreamingHttpResponse(gen(cam), content_type='multipart/x-mixed-replace;boundary=frame')
