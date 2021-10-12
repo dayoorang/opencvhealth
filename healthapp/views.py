@@ -321,24 +321,23 @@ class VideoCamera(object):
                             self.stages[0] = 'DOWN'
 
                         if self.counter == self.REPEATS[self.ROUTE.index('Push Up')]:
-                            if self.ROUTE[-1] == 'Push Up':
-                                self.current_set += 1
-                                if self.current_set == self.SET:
-                                    print('통과')
-                                    cv2.rectangle(img=image, pt1=(100, int(self.HEIGHT / 2 - 50)),
-                                                  pt2=(550, int(self.HEIGHT / 2 + 20)),
-                                                  color=self.BLACK_COLOR,
-                                                  thickness=-1)
-
-                                    text = 'Success!'
-                                    cv2.putText(img=image, text=text, org=(230, int(self.HEIGHT / 2)),
-                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                                fontScale=0.8, color=self.WHITE_COLOR, thickness=2,
-                                                lineType=cv2.LINE_AA)
-                            else:
-                                self.current_route += 1
-                                self.stages[0] = ''
                             self.counter = 0
+                            self.current_set += 1
+                            # self.stages[0], self.stages[1] = '', ''
+                            if self.current_set == self.SET:
+                                self.current_route += 1
+                                self.counter = 0
+                                self.current_set = 0
+                        #
+                        # if self.counter == self.REPEATS[self.ROUTE.index('Push Up')]:
+                        #     if self.ROUTE[-1] == 'Push Up':
+                        #         self.current_set += 1
+                        #         if self.current_set == self.SET:
+                        #             pass
+                        #     else:
+                        #         self.current_route += 1
+                        #         self.stages[0] = ''
+                        #     self.counter = 0
 
                         self.draw_status(img=image, counter=self.counter , current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=None,
                                     exer_type=self.ROUTE[self.current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
@@ -389,23 +388,21 @@ class VideoCamera(object):
                             self.right_counter = 0
 
                             if self.counter == self.REPEATS[self.ROUTE.index('Curl')]:
-                                if self.ROUTE[-1] == 'Curl':
-                                    self.current_set += 1
-                                    if self.current_set == self.SET:
-                                        cv2.rectangle(img=image, pt1=(100, int(self.HEIGHT / 2 - 50)),
-                                                      pt2=(550, int(self.HEIGHT / 2 + 20)),
-                                                      color=self.BLACK_COLOR,
-                                                      thickness=-1)
-
-                                        text = 'Success!'
-                                        cv2.putText(img=image, text=text, org=(230, int(self.HEIGHT / 2)),
-                                                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                                    fontScale=0.8, color=self.WHITE_COLOR, thickness=2,
-                                                    lineType=cv2.LINE_AA)
-                                else:
-                                    self.current_route += 1
-                                    self.stages[0], self.stages[1] = '', ''
                                 self.counter = 0
+                                self.current_set += 1
+                                self.stages[0], self.stages[1] = '', ''
+                                if self.current_set == self.SET:
+                                    self.current_route += 1
+                                    self.counter = 0
+                                    self.current_set = 0
+                                # if self.ROUTE[self.ROUTE.index('Curl')] == 'Curl':
+                                #     self.current_set += 1
+                                #     if self.current_set == self.SET:
+                                #       self.current_route += 1
+                                # else:
+                                #     self.current_route += 1
+                                #     self.stages[0], self.stages[1] = '', ''
+                                # self.counter = 0
 
                         # Setup status box / Draw Status
                         self.draw_status(img=image, counter=self.counter, current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=self.stages[1],
@@ -445,24 +442,23 @@ class VideoCamera(object):
                             self.stages[0] = 'DOWN'
 
                         if self.counter == self.REPEATS[self.ROUTE.index('Squat')]:
-                            if self.ROUTE[-1] == 'Squat':
-                                self.current_set += 1
-                                if self.current_set == self.SET:
-                                    print('통과1')
-                                    cv2.rectangle(img=image, pt1=(100, int(self.HEIGHT / 2 - 50)),
-                                                  pt2=(550, int(self.HEIGHT / 2 + 20)),
-                                                  color=self.BLACK_COLOR,
-                                                  thickness=-1)
-
-                                    text = 'Success!'
-                                    cv2.putText(img=image, text=text, org=(230, int(self.HEIGHT / 2)),
-                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                                fontScale=0.8, color=self.WHITE_COLOR, thickness=2,
-                                                lineType=cv2.LINE_AA)
-                            else:
-                                self.current_route += 1
-                                self.stages[0] = ''
                             self.counter = 0
+                            self.current_set += 1
+                            # self.stages[0], self.stages[1] = '', ''
+                            if self.current_set == self.SET:
+                                self.current_route += 1
+                                self.counter = 0
+                                self.current_set = 0
+
+                        # if self.counter == self.REPEATS[self.ROUTE.index('Squat')]:
+                        #     if self.ROUTE[-1] == 'Squat':
+                        #         self.current_set += 1
+                        #         if self.current_set == self.SET:
+                        #             pass
+                        #     else:
+                        #         self.current_route += 1
+                        #         self.stages[0] = ''
+                        #     self.counter = 0
 
                         self.draw_status(img=image, counter=self.counter, current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=None,
                                     exer_type=self.ROUTE[self.current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
