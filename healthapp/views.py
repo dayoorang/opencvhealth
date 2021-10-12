@@ -69,7 +69,7 @@ def _normalized_to_pixel_coordinates(normalized_x: float, normalized_y: float, i
 
 class VideoCamera(object):
     def __init__(self, EXER, REPEATS, SET):
-        self.cap = cv2.VideoCapture(0)
+        self.video = cv2.VideoCapture(0)
 
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_pose = mp.solutions.pose
@@ -78,15 +78,15 @@ class VideoCamera(object):
         self.left_counter: int = 0
         self.right_counter: int = 0
         self.counter: int = 0
-        self.stage: str = ''  # down or up
+        self.stages: List[str] = ['','']
 
         # 사용자가 미리 정해 놓은 루틴 / 한 운동의 반복횟수 / 한 운동의 세트횟수
         # self.ROUTE: List[str] = ['아령들기', '스쿼트','팔굽혀펴기']
 
         ### 수정중 ####
-        self.ROUTE = EXER
-        self.REPEATS = REPEATS
-        self.SET = SET
+        self.ROUTE:List[str] = EXER[0]
+        self.REPEATS:List[int]= REPEATS[0]
+        self.SET: int = SET
         ##############
 
         self.current_route: int = 0  # ROUTE[0] .. ROUTE[2] 순으로 사용
@@ -99,8 +99,19 @@ class VideoCamera(object):
         self.GREEN_COLOR = (0, 128, 0)
         self.BLUE_COLOR = (255, 0, 0)
 
+        # threading
+        self.engine = pyttsx3.init()  ###
+        self.engine.setProperty('rate', 200)
+
+        voices = self.engine.getProperty('voices')
+        self.engine.setProperty('voice', voices[0].id)
+
+        # 추가 init_params
+        self.WIDTH = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.HEIGHT = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
     def __del__(self):
-        self.cap.release()
+        self.video.release()
 
     # custom draw mark
 
@@ -167,17 +178,16 @@ class VideoCamera(object):
         return angle
 
     def say_counter(self, counter: int):
-        engine = pyttsx3.init()
-        engine.setProperty('rate', 200)
-
-        voices = engine.getProperty('voices')
-        engine.setProperty('voice', voices[0].id)
-
-        engine.say(f"{counter}")
+        # engine = pyttsx3.init()
+        # engine.setProperty('rate', 200)
+        #
+        # voices = engine.getProperty('voices')
+        # engine.setProperty('voice', voices[0].id)
+        #
+        # engine.say(f"{counter}")
         try:
-            engine.runAndWait()
+            self.engine.runAndWait()
         except:
-            print('무시하고 동작합니다')
             pass
 
     def create_thread(self, counter: int):
@@ -187,170 +197,245 @@ class VideoCamera(object):
         if not thread.is_alive():
             thread.start()
 
+    def draw_status(self, img, counter: int, current_set: int, cur_fststage: str, cur_scdstage: str = None,
+                    exer_type: str = None,
+                    _repeat: bool = True, _stage: bool = True, _set: bool = True, _exercise: bool = True,
+                    multi_stages: bool = True):
+        cv2.rectangle(img=img, pt1=(0, 0), pt2=(1300, 70), color=(245, 117, 16), thickness=-1)
+
+        if multi_stages:
+            if _stage:  # Stage Data
+                cv2.putText(img=img, text='Left Stage', org=(500, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
+                cv2.putText(img=img, text=cur_scdstage, org=(500, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+                cv2.putText(img=img, text='Right Stage', org=(800, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
+                cv2.putText(img=img, text=cur_fststage, org=(800, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+        else:
+            if _stage:  # Stage Data
+                cv2.putText(img=img, text='Stage', org=(500, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
+                cv2.putText(img=img, text=cur_fststage, org=(500, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+
+        if _repeat:  # Repeat Data
+            cv2.putText(img=img, text='Reps', org=(11, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
+            cv2.putText(img=img, text=str(counter), org=(10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+
+        if _set:  # Set Data
+            cv2.putText(img=img, text='Sets', org=(101, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
+            cv2.putText(img=img, text=str(current_set), org=(101, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+
+        if _exercise:  # Exercise Data
+            cv2.putText(img=img, text='Exercise', org=(161, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
+            cv2.putText(img=img, text=exer_type, org=(161, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+
+    def is_visiblities(self, img, first: float, second: float, third: float) -> bool:
+        if first < _VISIBILITY_THRESHOLD or second < _VISIBILITY_THRESHOLD or third < _VISIBILITY_THRESHOLD:
+            cv2.rectangle(img=img, pt1=(100, int(self.HEIGHT / 2 - 50)), pt2=(1110, int(self.HEIGHT / 2 + 20)), color=BLACK_COLOR,
+                          thickness=-1)
+
+            text = 'Please adjust your web camera'
+            cv2.putText(img=img, text=text, org=(100, int(HEIGHT / 2)), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+            return True
+        else:
+            return False
+
+    # def draw_end(img):
+    #     text = 'Finally Finish You Did'
+    #     cv2.putText(img=img, text=text, org=(100, int(HEIGHT / 2)), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+    #                 fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+
+
     def get_frame(self):
         with self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
-            ret, frame = self.cap.read()
-            # Recolor image to RGB
-            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            checkframe, frame = self.video.read()
+            # frame = cv2.flip(src=frame, flipCode=1) # 좌우(1) 또는 상하(0) 반전
+
+            # Recolor 'frame' to RGB
+            image = cv2.cvtColor(src=frame, code=cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
-
-            # Make detection
+            # Make Detection
             results = pose.process(image)
-
             # Recolor back to BGR
             image.flags.writeable = True
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            image = cv2.cvtColor(src=image, code=cv2.COLOR_RGB2BGR)
 
             # Extract landmarks
             try:
                 landmarks = results.pose_landmarks.landmark
 
-                if self.ROUTE[self.current_route] == '아령들기':
-                # if self.ROUTE[self.current_route] == '아령들기':
-                    # 어깨, 팔꿈치, 손목
-                    coor_left_shoulder: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                                                       landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-                    coor_left_elbow: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
-                                                    landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
-                    coor_left_wrist: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].x,
-                                                    landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].y]
-
-                    coor_right_shoulder: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
-                                                        landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
-                    coor_right_elbow: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
-                                                     landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].y]
-                    coor_right_wrist: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
-                                                     landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].y]
-
-                    left_angle: float = self.calculate_angle(coor_left_shoulder, coor_left_elbow, coor_left_wrist)
-                    right_angle: float = self.calculate_angle(coor_right_shoulder, coor_right_elbow, coor_right_wrist)
-
-                    if left_angle > 160:
-                        self.stage = 'DOWN'
-                    if left_angle < 30 and self.stage == 'DOWN':
-                        self.stage = 'UP'
-                        self.left_counter += 1
-
-                    if right_angle > 160:
-                        self.stage = 'DOWN'
-                    if right_angle < 30 and self.stage == 'DOWN':
-                        self.stage = 'UP'
-                        self.right_counter += 1
-
-                    if self.left_counter >= 1 and self.right_counter >= 1:
-                        # 쓰레드 추가
-                        self.counter += 1
-                        self.create_thread(self.counter)
-
-                        self.left_counter = 0
-                        self.right_counter = 0
-                        if self.counter == self.REPEATS:  # 15회
-                            self.current_set += 1
-                            self.counter = 0
-                            if self.current_set == self.SET:  # 3세트면 다음 운동 / 혹은 종료(구현 필요)
-                                self.current_set = 0
-                                self.current_route += 1
-
-
-                elif self.ROUTE[self.current_route]  == '스쿼트':
-                    # 골반(hip), 무릎(knee), 발목(ankle)
-                    coor_left_hip: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].x,
-                                                  landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].y]
-                    coor_left_knee: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].x,
-                                                   landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].y]
-                    coor_left_ankle: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].x,
-                                                    landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
-                    coor_right_hip: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].x,
-                                                   landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].y]
-                    coor_right_knee: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].x,
-                                                    landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].y]
-                    coor_right_ankle: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].x,
-                                                     landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
-
-                    left_angle: float = self.calculate_angle(coor_left_hip, coor_left_knee, coor_left_ankle)
-                    right_angle: float = self.calculate_angle(coor_right_hip, coor_right_knee, coor_right_ankle)
-
-                    # 정면에서 보면 다리 각도가 잘 보이는지 확인하기
-                    if left_angle >= 170 and right_angle >= 170 and self.stage == 'DOWN':
-                        self.stage = 'UP'
-                        self.counter += 1
-                        self.create_thread(self.counter)
-
-                    if left_angle <= 120 and right_angle <= 120:
-                        self.stage = 'DOWN'
-
-                    if self.counter == self.REPEATS:  # 15회
-                        self.current_set += 1
-                        self.counter = 0
-                        if self.current_set == self.SET:  # 3세트면 다음 운동 / 혹은 종료(구현 필요)
-                            self.current_set = 0
-                            self.current_route += 1
-                    #
-                    # cv2.putText(img=image, text=str(int(left_angle)), org=(1000, 100),
-                    #             # tuple(np.multiply(coor_elbow, [image.shape[0], image.shape[1]]).astype(int))
-                    #             fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=3, color=self.BLUE_COLOR, thickness=2,
-                    #             lineType=cv2.LINE_AA)
-
-                # landmarks = results.pose_landmarks.landmark
+                # 루틴별로 연산 필요 -------------------------------------------------------
+                # Get coordinates & Calculate a angle & Counter Logic
+                # if ROUTE[current_route] == 'Push Up':
+                #     if is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].visibility,
+                #                       second=landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility,
+                #                       third=landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].visibility) and \
+                #        is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].visibility,
+                #                       second=landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].visibility,
+                #                       third=landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].visibility):
+                #         pass
+                #     else:
+                #         # 어깨, 팔꿈치, 손목
+                #         coor_left_shoulder: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
+                #                                            landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+                #         coor_left_elbow: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
+                #                                         landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+                #         coor_left_wrist: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x,
+                #                                         landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
                 #
-                # # Get coordinates
-                # shoulder = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                #             landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-                # elbow = [landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
-                #          landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
-                # wrist = [landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].x,
-                #          landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].y]
+                #         coor_right_shoulder: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+                #                                             landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+                #         coor_right_elbow: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
+                #                                          landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].y]
+                #         coor_right_wrist: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
+                #                                          landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].y]
                 #
-                # # Calculate angle
-                # angle = self.calculate_angle(shoulder, elbow, wrist)
+                #         left_angle: float = calculate_angle(coor_left_shoulder, coor_left_elbow, coor_left_wrist)
+                #         right_angle: float = calculate_angle(coor_right_shoulder, coor_right_elbow, coor_right_wrist)
                 #
-                # # Visualize angle
-                # cv2.putText(image, str(angle),
-                #             tuple(np.multiply(elbow, [640, 480]).astype(int)),
-                #             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2, cv2.LINE_AA
-                #             )
+                #         # 양쪽이 안보일 때는 어떻게 카운팅되는지 확인해보기
+                #         if left_angle >= 170 and right_angle >= 170 and stages[0] == 'DOWN':
+                #             stages[0] = 'UP'
+                #             counter += 1
+                #             create_thread(counter)
+                #         if left_angle <= 100 and right_angle <= 100:
+                #             stages[0] = 'DOWN'
                 #
-                # # Curl counter logic
-                # if angle > 160:
-                #     self.stage = "down"
-                # if angle < 30 and self.stage == 'down':
-                #     self.stage = "up"
-                #     self.counter += 1
+                #         if counter == REPEATS[ROUTE.index('Push Up')]:
+                #             if ROUTE[-1] == 'Push Up':
+                #                 current_set += 1
+                #                 if current_set == SET:
+                #                     break
+                #             else:
+                #                 current_route += 1
+                #                 stages[0] = ''
+                #             counter = 0
+                #
+                #         draw_status(img=image, counter=counter, current_set=current_set, cur_fststage=stages[0], cur_scdstage=None,
+                #                     exer_type=ROUTE[current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
 
+                if self.ROUTE[self.current_route] == 'Curl':
+                    if self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].visibility,
+                                      second=landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility,
+                                      third=landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].visibility) or\
+                        self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].visibility,
+                                       second=landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].visibility,
+                                       third=landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].visibility):
+                        pass
+                    else:
+                        # 어깨, 팔꿈치, 손목
+                        coor_left_shoulder: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
+                                                           landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+                        coor_left_elbow: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
+                                                        landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+                        coor_left_wrist: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].x,
+                                                        landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].y]
+
+                        coor_right_shoulder: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+                                                            landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+                        coor_right_elbow: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
+                                                         landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].y]
+                        coor_right_wrist: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
+                                                         landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].y]
+
+                        left_angle: float = self.calculate_angle(coor_left_shoulder, coor_left_elbow, coor_left_wrist)
+                        right_angle: float = self.calculate_angle(coor_right_shoulder, coor_right_elbow, coor_right_wrist)
+
+                        if left_angle > 160:
+                            self.stages[0] = 'DOWN'
+                        elif left_angle < 30 and self.stages[0] == 'DOWN':
+                            self.stages[0] = 'UP'
+                            self.left_counter += 1
+
+                        if right_angle > 160:
+                            self.stages[1] = 'DOWN'
+                        elif right_angle < 30 and self.stages[1] == 'DOWN':
+                            self.stages[1] = 'UP'
+                            self.right_counter += 1
+
+                        if self.left_counter >= 1 and self.right_counter >= 1:
+                            self.counter += 1
+                            self.create_thread(self.counter)
+                            self.left_counter = 0
+                            self.right_counter = 0
+
+                            if self.counter == self.REPEATS[self.ROUTE.index('Curl')]:
+                                if self.ROUTE[-1] == 'Curl':
+                                    self.current_set += 1
+                                    if self.current_set == self.SET:
+                                        pass
+                                else:
+                                    self.current_route += 1
+                                    self.stages[0], self.stages[1] = '', ''
+                                self.counter = 0
+
+                        # Setup status box / Draw Status
+                        self.draw_status(img=image, counter=self.counter, current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=self.stages[1],
+                                    exer_type=self.ROUTE[self.current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=True)
+
+                # elif ROUTE[current_route] == 'Squat':
+                #     if is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].visibility,
+                #                       second=landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].visibility,
+                #                       third=landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].visibility) or \
+                #        is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].visibility,
+                #                       second=landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].visibility,
+                #                       third=landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].visibility):
+                #         pass
+                #     else:
+                #         # 골반(hip), 무릎(knee), 발목(ankle)
+                #         coor_left_hip: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x,
+                #                                       landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
+                #         coor_left_knee: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x,
+                #                                        landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
+                #         coor_left_ankle: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x,
+                #                                         landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
+                #         coor_right_hip: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].x,
+                #                                        landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].y]
+                #         coor_right_knee: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].x,
+                #                                         landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].y]
+                #         coor_right_ankle: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].x,
+                #                                          landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
+                #
+                #         left_angle: float = calculate_angle(coor_left_hip, coor_left_knee, coor_left_ankle)
+                #         right_angle: float = calculate_angle(coor_right_hip, coor_right_knee, coor_right_ankle)
+                #
+                #         if left_angle >= 170 and right_angle >= 170 and stages[0] == 'DOWN':
+                #             stages[0] = 'UP'
+                #             counter += 1
+                #             create_thread(counter)
+                #         if left_angle <= 120 and right_angle <= 120:
+                #             stages[0] = 'DOWN'
+                #
+                #         if counter == REPEATS[ROUTE.index('Squat')]:
+                #             if ROUTE[-1] == 'Squat':
+                #                 current_set += 1
+                #                 if current_set == SET:
+                #                     break
+                #             else:
+                #                 current_route += 1
+                #                 stages[0] = ''
+                #             counter = 0
+                #
+                #         draw_status(img=image, counter=counter, current_set=current_set, cur_fststage=stages[0], cur_scdstage=None,
+                #                     exer_type=ROUTE[current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
+                # elif ROUTE[current_route] == 'something_1':
+                #     pass
+                # elif ROUTE[current_route] == 'something_2':
+                #     pass
+                # ------------------------------------------------------------------------
             except:
                 pass
 
-            # Render curl counter
-            # Setup status box
-            cv2.rectangle(img=image, pt1=(0, 0), pt2=(400, 70), color=(245, 117, 16), thickness=-1)  # 280
-
-            # Repeat data
-            cv2.putText(img=image, text='REPS', org=(11, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
-            cv2.putText(img=image, text=str(self.counter), org=(10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
-            # Stage data
-            cv2.putText(img=image, text='STAGE', org=(100, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
-            cv2.putText(img=image, text=self.stage, org=(100, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
-            # Set data
-            cv2.putText(img=image, text='SET', org=(290, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
-            cv2.putText(img=image, text=str(self.current_set), org=(290, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2, color=(255, 255, 255), thickness=2, lineType=cv2.LINE_AA)
-
-            # # Render detections
-            # self.mp_drawing.draw_landmarks(image, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS,
-            #                           self.mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=2),
-            #                           self.mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2)
-            #                           )
-
-            # self.customized_draw_landmarks(image,
-            #                                results.pose_landmarks,  # same type : landmarks[32]
-            #                                CUSTOMIZED_POSE_CONNETIONS)  # mp_pose.POSE_CONNECTIONS
-
-            #
             self.customized_draw_landmarks(image=image,
                                       landmark_list=results.pose_landmarks,  # same type : landmarks[32]
                                       connections=CUSTOMIZED_POSE_CONNETIONS)  # mp_pose.POSE_CONNECTIONS

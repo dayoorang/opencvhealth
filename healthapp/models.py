@@ -10,8 +10,9 @@ class Health(models.Model):
 
 
 EXERCISE_CHOICES = (
-            ('아령들기', '아령들기' ),
-            ('스쿼트', '스쿼트' ),
+            ('Curl', '아령들기' ),
+            ('Squat', '스쿼트' ),
+            ('Push Up', '팔굽혀펴기'),
             ('없음', '없음'),
 )
 
