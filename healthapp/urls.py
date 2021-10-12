@@ -11,6 +11,6 @@ urlpatterns = [
     path('delete/<int:pk>', HealthDeleteView.as_view(), name='delete'),
     path('complete/<int:pk>', HealthCompleteView.as_view(), name='complete'),
 
-    path('custom/', HealthCreationView.as_view(), name='health'),
+    path('', HealthCreationView.as_view(), name='health'),
 
 ]

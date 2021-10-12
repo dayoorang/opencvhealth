@@ -19,7 +19,8 @@ import threading
 # Create your views here.
 from healthapp.forms import HealthForm
 from healthapp.models import Health
-
+import threading as trd
+import pyttsx3
 
 
 ### camera code ####
@@ -164,6 +165,27 @@ class VideoCamera(object):
             angle = 360 - angle
         return angle
 
+    def say_counter(self, counter: int):
+        engine = pyttsx3.init()
+        engine.setProperty('rate', 200)
+
+        voices = engine.getProperty('voices')
+        engine.setProperty('voice', voices[0].id)
+
+        engine.say(f"{counter}")
+        try:
+            engine.runAndWait()
+        except:
+            print('무시하고 동작합니다')
+            pass
+
+    def create_thread(self, counter: int):
+        # 중복 생성에 유의할 것
+        thread = trd.Thread(target=self.say_counter, name='Counter', args=(counter,))
+        thread.daemon = True
+        if not thread.is_alive():
+            thread.start()
+
     def get_frame(self):
         with self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
             ret, frame = self.cap.read()
@@ -215,7 +237,10 @@ class VideoCamera(object):
                         self.right_counter += 1
 
                     if self.left_counter >= 1 and self.right_counter >= 1:
+                        # 쓰레드 추가
                         self.counter += 1
+                        self.create_thread(self.counter)
+
                         self.left_counter = 0
                         self.right_counter = 0
                         if self.counter == self.REPEATS:  # 15회
@@ -248,6 +273,8 @@ class VideoCamera(object):
                     if left_angle >= 170 and right_angle >= 170 and self.stage == 'DOWN':
                         self.stage = 'UP'
                         self.counter += 1
+                        self.create_thread(self.counter)
+
                     if left_angle <= 120 and right_angle <= 120:
                         self.stage = 'DOWN'
 
