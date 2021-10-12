@@ -84,8 +84,8 @@ class VideoCamera(object):
         # self.ROUTE: List[str] = ['아령들기', '스쿼트','팔굽혀펴기']
 
         ### 수정중 ####
-        self.ROUTE:List[str] = EXER[0]
-        self.REPEATS:List[int]= REPEATS[0]
+        self.ROUTE:List[str] = EXER
+        self.REPEATS:List[int]= REPEATS
         self.SET: int = SET
         ##############
 
@@ -208,44 +208,46 @@ class VideoCamera(object):
                 cv2.putText(img=img, text='Left Stage', org=(500, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                             fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
                 cv2.putText(img=img, text=cur_scdstage, org=(500, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+                            fontScale=2, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
                 cv2.putText(img=img, text='Right Stage', org=(800, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                             fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
                 cv2.putText(img=img, text=cur_fststage, org=(800, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+                            fontScale=2, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
         else:
             if _stage:  # Stage Data
                 cv2.putText(img=img, text='Stage', org=(500, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                             fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
                 cv2.putText(img=img, text=cur_fststage, org=(500, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+                            fontScale=2, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
 
         if _repeat:  # Repeat Data
             cv2.putText(img=img, text='Reps', org=(11, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
             cv2.putText(img=img, text=str(counter), org=(10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+                        fontScale=2, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
 
         if _set:  # Set Data
             cv2.putText(img=img, text='Sets', org=(101, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
             cv2.putText(img=img, text=str(current_set), org=(101, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+                        fontScale=2, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
 
         if _exercise:  # Exercise Data
             cv2.putText(img=img, text='Exercise', org=(161, 12), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=0.5, color=(0, 0, 0), thickness=1, lineType=cv2.LINE_AA)
             cv2.putText(img=img, text=exer_type, org=(161, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+                        fontScale=2, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
 
     def is_visiblities(self, img, first: float, second: float, third: float) -> bool:
         if first < _VISIBILITY_THRESHOLD or second < _VISIBILITY_THRESHOLD or third < _VISIBILITY_THRESHOLD:
-            cv2.rectangle(img=img, pt1=(100, int(self.HEIGHT / 2 - 50)), pt2=(1110, int(self.HEIGHT / 2 + 20)), color=BLACK_COLOR,
+            # cv2.rectangle(img=img, pt1=(100, int(self.HEIGHT / 2 - 50)), pt2=(1110, int(self.HEIGHT / 2 + 20)), color=self.BLACK_COLOR,
+            #               thickness=-1)
+            cv2.rectangle(img=img, pt1=(50, int(self.HEIGHT / 2 - 50)), pt2=(550, int(self.HEIGHT / 2 + 20)), color=self.BLACK_COLOR,
                           thickness=-1)
 
             text = 'Please adjust your web camera'
-            cv2.putText(img=img, text=text, org=(100, int(HEIGHT / 2)), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=2, color=WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
+            cv2.putText(img=img, text=text, org=(100, int(self.HEIGHT / 2)), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.8, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
             return True
         else:
             return False
@@ -323,7 +325,7 @@ class VideoCamera(object):
                 #
                 #         draw_status(img=image, counter=counter, current_set=current_set, cur_fststage=stages[0], cur_scdstage=None,
                 #                     exer_type=ROUTE[current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
-
+                print('self.ROUTE[self.current_route]', self.ROUTE[self.current_route])
                 if self.ROUTE[self.current_route] == 'Curl':
                     if self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].visibility,
                                       second=landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility,
@@ -383,51 +385,51 @@ class VideoCamera(object):
                         self.draw_status(img=image, counter=self.counter, current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=self.stages[1],
                                     exer_type=self.ROUTE[self.current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=True)
 
-                # elif ROUTE[current_route] == 'Squat':
-                #     if is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].visibility,
-                #                       second=landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].visibility,
-                #                       third=landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].visibility) or \
-                #        is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].visibility,
-                #                       second=landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].visibility,
-                #                       third=landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].visibility):
-                #         pass
-                #     else:
-                #         # 골반(hip), 무릎(knee), 발목(ankle)
-                #         coor_left_hip: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x,
-                #                                       landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
-                #         coor_left_knee: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x,
-                #                                        landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
-                #         coor_left_ankle: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x,
-                #                                         landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
-                #         coor_right_hip: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].x,
-                #                                        landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].y]
-                #         coor_right_knee: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].x,
-                #                                         landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].y]
-                #         coor_right_ankle: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].x,
-                #                                          landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
-                #
-                #         left_angle: float = calculate_angle(coor_left_hip, coor_left_knee, coor_left_ankle)
-                #         right_angle: float = calculate_angle(coor_right_hip, coor_right_knee, coor_right_ankle)
-                #
-                #         if left_angle >= 170 and right_angle >= 170 and stages[0] == 'DOWN':
-                #             stages[0] = 'UP'
-                #             counter += 1
-                #             create_thread(counter)
-                #         if left_angle <= 120 and right_angle <= 120:
-                #             stages[0] = 'DOWN'
-                #
-                #         if counter == REPEATS[ROUTE.index('Squat')]:
-                #             if ROUTE[-1] == 'Squat':
-                #                 current_set += 1
-                #                 if current_set == SET:
-                #                     break
-                #             else:
-                #                 current_route += 1
-                #                 stages[0] = ''
-                #             counter = 0
-                #
-                #         draw_status(img=image, counter=counter, current_set=current_set, cur_fststage=stages[0], cur_scdstage=None,
-                #                     exer_type=ROUTE[current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
+                elif self.ROUTE[self.current_route] == 'Squat':
+                    if self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].visibility,
+                                      second=landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].visibility,
+                                      third=landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].visibility) or \
+                       self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].visibility,
+                                      second=landmarks[self.mp_pose.PoseLandmark.RIGHT_KNEE.value].visibility,
+                                      third=landmarks[self.mp_pose.PoseLandmark.RIGHT_ANKLE.value].visibility):
+                        pass
+                    else:
+                        # 골반(hip), 무릎(knee), 발목(ankle)
+                        coor_left_hip: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].x,
+                                                      landmarks[self.mp_pose.PoseLandmark.LEFT_HIP.value].y]
+                        coor_left_knee: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].x,
+                                                       landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].y]
+                        coor_left_ankle: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].x,
+                                                        landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
+                        coor_right_hip: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].x,
+                                                       landmarks[self.mp_pose.PoseLandmark.RIGHT_HIP.value].y]
+                        coor_right_knee: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_KNEE.value].x,
+                                                        landmarks[self.mp_pose.PoseLandmark.RIGHT_KNEE.value].y]
+                        coor_right_ankle: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_ANKLE.value].x,
+                                                         landmarks[self.mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
+
+                        left_angle: float = self.calculate_angle(coor_left_hip, coor_left_knee, coor_left_ankle)
+                        right_angle: float = self.calculate_angle(coor_right_hip, coor_right_knee, coor_right_ankle)
+
+                        if left_angle >= 170 and right_angle >= 170 and stages[0] == 'DOWN':
+                            self.stages[0] = 'UP'
+                            self.counter += 1
+                            self.create_thread(self.counter)
+                        if left_angle <= 120 and right_angle <= 120:
+                            self.stages[0] = 'DOWN'
+
+                        if self.counter == self.REPEATS[self.ROUTE.index('Squat')]:
+                            if self.ROUTE[-1] == 'Squat':
+                                self.current_set += 1
+                                if self.current_set == self.SET:
+                                    pass
+                            else:
+                                self.current_route += 1
+                                self.stages[0] = ''
+                            self.counter = 0
+
+                        self.draw_status(img=image, counter=self.counter, current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=None,
+                                    exer_type=self.ROUTE[self.current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
                 # elif ROUTE[current_route] == 'something_1':
                 #     pass
                 # elif ROUTE[current_route] == 'something_2':
