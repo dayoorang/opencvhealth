@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 
-from healthapp.views import detectme, HealthCreationView, TrainingView, HealthDeleteView, HealthCompleteView, \
+from healthapp.views import detectme, TrainingView, HealthDeleteView, HealthCompleteView, \
     HealthCustomCreationView
 
 app_name = 'healthmapp'

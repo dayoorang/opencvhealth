@@ -17,8 +17,8 @@ from django.views.generic import CreateView, DetailView, DeleteView
 from mediapipe.framework.formats import landmark_pb2
 import threading
 # Create your views here.
-from healthapp.forms import HealthForm, HealthCustomForm
-from healthapp.models import Health, HealthCustom
+from healthapp.forms import  HealthCustomForm
+from healthapp.models import HealthCustom
 import threading as trd
 import pyttsx3
 
@@ -184,7 +184,7 @@ class VideoCamera(object):
         # voices = engine.getProperty('voices')
         # engine.setProperty('voice', voices[0].id)
         #
-        # engine.say(f"{counter}")
+        self.engine.say(f"{counter}")
         try:
             self.engine.runAndWait()
         except:
@@ -275,58 +275,59 @@ class VideoCamera(object):
             # Extract landmarks
             try:
                 landmarks = results.pose_landmarks.landmark
+                print('self.ROUTE[self.current_route]', self.ROUTE[self.current_route])
 
                 # 루틴별로 연산 필요 -------------------------------------------------------
                 # Get coordinates & Calculate a angle & Counter Logic
-                # if ROUTE[current_route] == 'Push Up':
-                #     if is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].visibility,
-                #                       second=landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility,
-                #                       third=landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].visibility) and \
-                #        is_visiblities(img=image, first=landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].visibility,
-                #                       second=landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].visibility,
-                #                       third=landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].visibility):
-                #         pass
-                #     else:
-                #         # 어깨, 팔꿈치, 손목
-                #         coor_left_shoulder: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
-                #                                            landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-                #         coor_left_elbow: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
-                #                                         landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
-                #         coor_left_wrist: List[float] = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x,
-                #                                         landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
-                #
-                #         coor_right_shoulder: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
-                #                                             landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
-                #         coor_right_elbow: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
-                #                                          landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].y]
-                #         coor_right_wrist: List[float] = [landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
-                #                                          landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].y]
-                #
-                #         left_angle: float = calculate_angle(coor_left_shoulder, coor_left_elbow, coor_left_wrist)
-                #         right_angle: float = calculate_angle(coor_right_shoulder, coor_right_elbow, coor_right_wrist)
-                #
-                #         # 양쪽이 안보일 때는 어떻게 카운팅되는지 확인해보기
-                #         if left_angle >= 170 and right_angle >= 170 and stages[0] == 'DOWN':
-                #             stages[0] = 'UP'
-                #             counter += 1
-                #             create_thread(counter)
-                #         if left_angle <= 100 and right_angle <= 100:
-                #             stages[0] = 'DOWN'
-                #
-                #         if counter == REPEATS[ROUTE.index('Push Up')]:
-                #             if ROUTE[-1] == 'Push Up':
-                #                 current_set += 1
-                #                 if current_set == SET:
-                #                     break
-                #             else:
-                #                 current_route += 1
-                #                 stages[0] = ''
-                #             counter = 0
-                #
-                #         draw_status(img=image, counter=counter, current_set=current_set, cur_fststage=stages[0], cur_scdstage=None,
-                #                     exer_type=ROUTE[current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
-                print('self.ROUTE[self.current_route]', self.ROUTE[self.current_route])
-                if self.ROUTE[self.current_route] == 'Curl':
+                if self.ROUTE[self.current_route] == 'Push Up':
+                    if self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].visibility,
+                                      second=landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility,
+                                      third=landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].visibility) and \
+                       self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].visibility,
+                                      second=landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].visibility,
+                                      third=landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].visibility):
+                        pass
+                    else:
+                        # 어깨, 팔꿈치, 손목
+                        coor_left_shoulder: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
+                                                           landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+                        coor_left_elbow: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].x,
+                                                        landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+                        coor_left_wrist: List[float] = [landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].x,
+                                                        landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].y]
+
+                        coor_right_shoulder: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+                                                            landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+                        coor_right_elbow: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].x,
+                                                         landmarks[self.mp_pose.PoseLandmark.RIGHT_ELBOW.value].y]
+                        coor_right_wrist: List[float] = [landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].x,
+                                                         landmarks[self.mp_pose.PoseLandmark.RIGHT_WRIST.value].y]
+
+                        left_angle: float = self.calculate_angle(coor_left_shoulder, coor_left_elbow, coor_left_wrist)
+                        right_angle: float = self.calculate_angle(coor_right_shoulder, coor_right_elbow, coor_right_wrist)
+
+                        # 양쪽이 안보일 때는 어떻게 카운팅되는지 확인해보기
+                        if left_angle >= 170 and right_angle >= 170 and self.stages[0] == 'DOWN':
+                            self.stages[0] = 'UP'
+                            self.counter += 1
+                            self.create_thread(self.counter)
+                        if left_angle <= 100 and right_angle <= 100:
+                            self.stages[0] = 'DOWN'
+
+                        if self.counter == self.REPEATS[self.ROUTE.index('Push Up')]:
+                            if self.ROUTE[-1] == 'Push Up':
+                                self.current_set += 1
+                                if self.current_set == self.SET:
+                                    pass
+                            else:
+                                self.current_route += 1
+                                self.stages[0] = ''
+                            self.counter = 0
+
+                        self.draw_status(img=image, counter=self.counter , current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=None,
+                                    exer_type=self.ROUTE[self.current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
+
+                elif self.ROUTE[self.current_route] == 'Curl':
                     if self.is_visiblities(img=image, first=landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value].visibility,
                                       second=landmarks[self.mp_pose.PoseLandmark.LEFT_ELBOW.value].visibility,
                                       third=landmarks[self.mp_pose.PoseLandmark.LEFT_WRIST.value].visibility) or\
@@ -411,7 +412,7 @@ class VideoCamera(object):
                         left_angle: float = self.calculate_angle(coor_left_hip, coor_left_knee, coor_left_ankle)
                         right_angle: float = self.calculate_angle(coor_right_hip, coor_right_knee, coor_right_ankle)
 
-                        if left_angle >= 170 and right_angle >= 170 and stages[0] == 'DOWN':
+                        if left_angle >= 170 and right_angle >= 170 and self.stages[0] == 'DOWN':
                             self.stages[0] = 'UP'
                             self.counter += 1
                             self.create_thread(self.counter)
@@ -430,8 +431,16 @@ class VideoCamera(object):
 
                         self.draw_status(img=image, counter=self.counter, current_set=self.current_set, cur_fststage=self.stages[0], cur_scdstage=None,
                                     exer_type=self.ROUTE[self.current_route], _repeat=True, _stage=True, _set=True, _exercise=True, multi_stages=False)
-                # elif ROUTE[current_route] == 'something_1':
-                #     pass
+
+
+                elif self.ROUTE[self.current_route] == 'End':
+                    cv2.rectangle(img=image, pt1=(100, int(self.HEIGHT / 2 - 50)), pt2=(550, int(self.HEIGHT / 2 + 20)),
+                                  color=self.BLACK_COLOR,
+                                  thickness=-1)
+
+                    text = 'Success!'
+                    cv2.putText(img=image, text=text, org=(230, int(self.HEIGHT / 2)), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                fontScale=0.8, color=self.WHITE_COLOR, thickness=2, lineType=cv2.LINE_AA)
                 # elif ROUTE[current_route] == 'something_2':
                 #     pass
                 # ------------------------------------------------------------------------
@@ -487,18 +496,9 @@ def detectme(request,pk):
 
 # custom page View
 
-class HealthCreationView(CreateView):
-    model = Health
-    form_class = HealthForm
-    success_url = reverse_lazy('healthmapp:training')
-    template_name = 'healthapp/custom.html'
-
-    def get_success_url(self):
-        return reverse('healthmapp:training', args=[self.object.pk])
-
 
 class HealthDeleteView(DeleteView):
-    model = Health
+    model = HealthCustom
     context_object_name = 'target_health'
     success_url = reverse_lazy('healthmapp:health')
 
@@ -513,13 +513,13 @@ class TrainingView(DetailView):
 
 
 class HealthCompleteView(DetailView):
-    model = Health
+    model = HealthCustom
     context_object_name = 'target_health'
     template_name = 'healthapp/complete.html'
 
 
 class HealthCustomCreationView(CreateView):
-    model = Health
+    model = HealthCustom
     form_class = HealthCustomForm
     success_url = reverse_lazy('healthmapp:training')
     template_name = 'healthapp/healthcustom.html'

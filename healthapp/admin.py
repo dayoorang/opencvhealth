@@ -1,12 +1,9 @@
 from django.contrib import admin
 
 # Register your models here.
-from healthapp.models import Health, HealthCustom
+from healthapp.models import  HealthCustom
 
 
-@admin.register(Health)
-class HealthAdmin(admin.ModelAdmin):
-    pass
 
 
 @admin.register(HealthCustom)

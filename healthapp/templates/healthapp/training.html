@@ -10,10 +10,10 @@
 {#        <div style="background: aquamarine">'안녕'</div>#}
         <div class="item-1">
             <span>{{ target_health.exercise_1 }} {{ target_health.repeats_1 }}</span>
-            {% if target_health.exercise_2 != '없음'%}
+            {% if target_health.exercise_2 != 'End' %}
                 <span> 👉 {{ target_health.exercise_2 }} {{ target_health.repeats_2 }}</span>
             {% endif %}
-            {% if target_health.exercise_3 != '없음'%}
+            {% if target_health.exercise_3 != 'End' %}
                 <span> 👉 {{ target_health.exercise_3 }} {{ target_health.repeats_3 }}</span>
             {% endif %}
 

@@ -2,10 +2,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 # Create your models here.
-class Health(models.Model):
-    repeats = models.PositiveIntegerField(blank=False, null=False, default=1) # 운동 반복 횟수
-    set = models.PositiveIntegerField(blank=False, null=False, default=1) # 운동 세트 횟수
-    created_at = models.DateTimeField(auto_now_add=True)
+# class Health(models.Model):
+#     repeats = models.PositiveIntegerField(blank=False, null=False, default=1) # 운동 반복 횟수
+#     set = models.PositiveIntegerField(blank=False, null=False, default=1) # 운동 세트 횟수
+#     created_at = models.DateTimeField(auto_now_add=True)
 
 
 
@@ -13,7 +13,7 @@ EXERCISE_CHOICES = (
             ('Curl', '아령들기' ),
             ('Squat', '스쿼트' ),
             ('Push Up', '팔굽혀펴기'),
-            ('없음', '없음'),
+            ('End', '없음'),
 )
 
 
